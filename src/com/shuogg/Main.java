@@ -1,6 +1,5 @@
 package com.shuogg;
 
-import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 
 /**
@@ -8,8 +7,7 @@ import java.time.LocalDate;
  */
 public class Main {
     public static void main(String[] args) {
-        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");
-        LocalDate lunar = LunarCalendar.lunar2Solar(2018, 12, 5);
-        System.out.println("Solar：" + lunar);
+        LocalDate lunar = LunarCalendar.lunar2Solar(1993, 12, 3);
+        System.out.println(lunar);
     }
 }

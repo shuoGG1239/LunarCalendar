@@ -325,26 +325,6 @@ public class LunarCalendar implements Serializable {
                 this.getSolar().get(Calendar.DATE));
     }
 
-    public LocalDate addDays(LocalDate baseDate, int amount) {
-        return baseDate.plusDays(amount);
-    }
-
-
-    private LocalDate computeByLunarDate(int lunarYear, int lunarMonth, int lunarDate) {
-        if (lunarYear < MIN_YEAR || lunarYear > MAX_YEAR) {
-            throw new LunarException("只能计算" + MIN_YEAR + "到" + MAX_YEAR);
-        }
-        int solarMontDate = LUNAR_INFO[lunarYear - MIN_YEAR][lunarMonth];
-        int leapMonth = LUNAR_INFO[lunarYear - MIN_YEAR][0];
-        if (leapMonth != 0 && (lunarMonth > leapMonth || (lunarMonth == leapMonth))) {
-            // 闰月，且当前农历月大于闰月月份，取下一个月的LunarInfo码
-            // 闰月，且当前农历月等于闰月月份，并且此农历月为闰月，取下一个月的LunarInfo码
-            solarMontDate = LUNAR_INFO[lunarYear - MIN_YEAR][lunarMonth + 1];
-        }
-        LocalDate solarDate = LocalDate.of(lunarYear, solarMontDate / 100, solarMontDate % 100);
-        return addDays(solarDate, lunarDate - 1);
-    }
-
 
     /**
      * 通过给定公历日期，计算农历日期
@@ -354,10 +334,9 @@ public class LunarCalendar implements Serializable {
      * @param solarDate
      * @return boolean
      */
-    private boolean computeBySolarDate(int solarYear, int solarMonth, int solarDate) {
-        boolean isSuccess = true;
+    private void computeBySolarDate(int solarYear, int solarMonth, int solarDate) {
         if (solarYear < MIN_YEAR || solarYear > MAX_YEAR) {
-            return false;
+            throw new LunarException("只能计算" + MIN_YEAR + "到" + MAX_YEAR);
         }
         int solarCode = solarYear * 10000 + 100 * solarMonth + solarDate; // 公历码
         leapMonth = LUNAR_INFO[solarYear - MIN_YEAR][0];
@@ -415,7 +394,6 @@ public class LunarCalendar implements Serializable {
                 this.month = newMonth;
             }
         }
-        return isSuccess;
     }
 
     /**
@@ -437,11 +415,8 @@ public class LunarCalendar implements Serializable {
      */
     public static LunarCalendar solar2Lunar(Calendar solar) {
         LunarCalendar ret = new LunarCalendar();
-        if (ret.computeBySolarDate(solar.get(Calendar.YEAR), solar.get(Calendar.MONTH) + 1, solar.get(Calendar.DATE))) {
-            return ret;
-        } else {
-            return null;
-        }
+        ret.computeBySolarDate(solar.get(Calendar.YEAR), solar.get(Calendar.MONTH) + 1, solar.get(Calendar.DATE));
+        return ret;
     }
 
     /**
@@ -449,12 +424,30 @@ public class LunarCalendar implements Serializable {
      *
      * @param lunarYear
      * @param lunarMonth
-     * @param LunarDate
+     * @param lunarDate
      * @return Calendar
      */
-    public static LocalDate lunar2Solar(int lunarYear, int lunarMonth, int LunarDate) {
-        LunarCalendar ret = new LunarCalendar();
-        return ret.computeByLunarDate(lunarYear, lunarMonth, LunarDate);
+    public static LocalDate lunar2Solar(int lunarYear, int lunarMonth, int lunarDate) {
+        if (lunarYear < MIN_YEAR || lunarYear > MAX_YEAR) {
+            throw new LunarException("只能计算" + MIN_YEAR + "到" + MAX_YEAR);
+        }
+        int solarMontDate = LUNAR_INFO[lunarYear - MIN_YEAR][lunarMonth];
+        int leapMonth = LUNAR_INFO[lunarYear - MIN_YEAR][0];
+        if (leapMonth != 0 && (lunarMonth > leapMonth || (lunarMonth == leapMonth))) {
+            // 闰月，且当前农历月大于闰月月份，取下一个月的LunarInfo码
+            // 闰月，且当前农历月等于闰月月份，并且此农历月为闰月，取下一个月的LunarInfo码
+            solarMontDate = LUNAR_INFO[lunarYear - MIN_YEAR][lunarMonth + 1];
+        }
+        int y = lunarYear;
+        int m = solarMontDate / 100;
+        int d = solarMontDate % 100;
+        /* 跨年了 */
+        if (m == 13) {
+            m = 1;
+            y += 1;
+        }
+        LocalDate solarDate = LocalDate.of(y, m, d);
+        return solarDate.plusDays(lunarDate - 1);
     }
 
     /**
@@ -694,41 +687,14 @@ public class LunarCalendar implements Serializable {
      *
      * @author joel
      */
-    public class LunarException extends RuntimeException {
-
-        private static final long serialVersionUID = 3274596943314243191L;
-
-        private String message;
+    public static class LunarException extends RuntimeException {
 
         public LunarException(String message) {
             super(message);
-            this.message = message;
         }
 
         public LunarException() {
             super();
         }
-
-        public LunarException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
-            super(message, cause, writableStackTrace, writableStackTrace);
-        }
-
-        public LunarException(String message, Throwable t) {
-            super(message, t);
-            this.message = message;
-        }
-
-        public LunarException(Throwable t) {
-            super(t);
-        }
-
-        public String getMessage() {
-            return message;
-        }
-
-        public void setMessage(String message) {
-            this.message = message;
-        }
-
     }
 }
