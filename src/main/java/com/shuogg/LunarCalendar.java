@@ -1,5 +1,7 @@
 package com.shuogg;
 
+import com.shuogg.exception.LunarException;
+
 import java.io.Serializable;
 import java.time.LocalDate;
 import java.util.Calendar;
@@ -312,19 +314,6 @@ public class LunarCalendar implements Serializable {
         return solarCodes;
     }
 
-    /**
-     * 日期增加
-     *
-     * @param field
-     * @param amount
-     */
-    public void add(int field, int amount) {
-        this.getSolar().add(field, amount);
-        this.computeBySolarDate(this.getSolar().get(Calendar.YEAR),
-                this.getSolar().get(Calendar.MONTH) + 1,
-                this.getSolar().get(Calendar.DATE));
-    }
-
 
     /**
      * 通过给定公历日期，计算农历日期
@@ -416,6 +405,12 @@ public class LunarCalendar implements Serializable {
     public static LunarCalendar solar2Lunar(Calendar solar) {
         LunarCalendar ret = new LunarCalendar();
         ret.computeBySolarDate(solar.get(Calendar.YEAR), solar.get(Calendar.MONTH) + 1, solar.get(Calendar.DATE));
+        return ret;
+    }
+
+    public static LunarCalendar solar2Lunar(int year, int month, int day) {
+        LunarCalendar ret = new LunarCalendar();
+        ret.computeBySolarDate(year, month, day);
         return ret;
     }
 
@@ -682,19 +677,5 @@ public class LunarCalendar implements Serializable {
         return this.toString() + " " + getTraditionalYearName(this.year) + " " + getAnimalYearName(this.year);
     }
 
-    /**
-     * 农历日期异常
-     *
-     * @author joel
-     */
-    public static class LunarException extends RuntimeException {
 
-        public LunarException(String message) {
-            super(message);
-        }
-
-        public LunarException() {
-            super();
-        }
-    }
 }
