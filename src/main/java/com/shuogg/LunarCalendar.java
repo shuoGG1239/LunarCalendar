@@ -4,6 +4,9 @@ import com.shuogg.exception.LunarException;
 
 import java.io.Serializable;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.ZoneOffset;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 
@@ -17,12 +20,12 @@ public class LunarCalendar implements Serializable {
     /**
      * 支持的最小年份
      */
-    public final static int MIN_YEAR = 1900;
+    private final static int MIN_YEAR = 1900;
 
     /**
      * 支持的最大年份
      */
-    public final static int MAX_YEAR = 2099;
+    private final static int MAX_YEAR = 2099;
 
     /**
      * 1900年-2099年间的农历信息.<br>
@@ -274,14 +277,26 @@ public class LunarCalendar implements Serializable {
     // 农历这年闰月，如果不闰月，默认为0
     private int leapMonth = 0;
     // 公历日期
-    private GregorianCalendar solar;
+    private LocalDate solar;
 
     /**
-     * 无参构造子，默认为当前日期
+     * 通过年、月、日构造LunarCalendar
+     *
+     * @param year
+     * @param month
+     * @param day
+     * @param isLunar 是否为农历日期
      */
-    public LunarCalendar() {
-        solar = new GregorianCalendar();
-        this.computeBySolarDate(solar.get(Calendar.YEAR), solar.get(Calendar.MONTH) + 1, solar.get(Calendar.DATE));
+    public LunarCalendar(int year, int month, int day, boolean isLunar) {
+        if (isLunar) {
+            solar = lunar2Solar(year, month, day);
+            this.year = year;
+            this.month = month;
+            this.day = day;
+        } else {
+            this.computeBySolarDate(year, month, day);
+            this.solar = LocalDate.of(year, month, day);
+        }
     }
 
 
@@ -385,33 +400,17 @@ public class LunarCalendar implements Serializable {
         }
     }
 
-    /**
-     * 计算两个农历日期之差
-     *
-     * @param lc1
-     * @param lc2
-     * @param field
-     */
-    public static long lunarDiff(LunarCalendar lc1, LunarCalendar lc2, int field) {
-        return solarDiff(lc1.getSolar(), lc2.getSolar(), field);
-    }
 
     /**
      * 公历转农历
      *
-     * @param solar
-     * @return LunarCalendar
+     * @param year
+     * @param month
+     * @param day
+     * @return
      */
-    public static LunarCalendar solar2Lunar(Calendar solar) {
-        LunarCalendar ret = new LunarCalendar();
-        ret.computeBySolarDate(solar.get(Calendar.YEAR), solar.get(Calendar.MONTH) + 1, solar.get(Calendar.DATE));
-        return ret;
-    }
-
     public static LunarCalendar solar2Lunar(int year, int month, int day) {
-        LunarCalendar ret = new LunarCalendar();
-        ret.computeBySolarDate(year, month, day);
-        return ret;
+        return new LunarCalendar(year, month, day, false);
     }
 
     /**
@@ -445,13 +444,6 @@ public class LunarCalendar implements Serializable {
         return solarDate.plusDays(lunarDate - 1);
     }
 
-    /**
-     * @param field
-     * @param n
-     */
-    public void solarAdd(int field, int n) {
-        this.getSolar().add(field, n);
-    }
 
     /**
      * 获取天
@@ -490,7 +482,7 @@ public class LunarCalendar implements Serializable {
      * @param solarCode2
      * @return long
      */
-    public static long solarDateCodesDiff(int solarCode1, int solarCode2, int field) {
+    private long solarDateCodesDiff(int solarCode1, int solarCode2, int field) {
         GregorianCalendar c1 = new GregorianCalendar(solarCode1 / 10000, solarCode1 % 10000 / 100 - 1,
                 solarCode1 % 10000 % 100);
         GregorianCalendar c2 = new GregorianCalendar(solarCode2 / 10000, solarCode2 % 10000 / 100 - 1,
@@ -507,7 +499,11 @@ public class LunarCalendar implements Serializable {
      * @param field
      * @return long
      */
-    public static long solarDiff(Calendar solar1, Calendar solar2, int field) {
+    private long solarDiff(Calendar solar1, Calendar solar2, int field) {
+//        LocalDateTime time1 = LocalDateTime.of(solar1, LocalTime.ofSecondOfDay(0));
+//        LocalDateTime time2 = LocalDateTime.of(solar2, LocalTime.ofSecondOfDay(0));
+//        long t1 = time1.toInstant(ZoneOffset.of("+8")).toEpochMilli();
+//        long t2 = time2.toInstant(ZoneOffset.of("+8")).toEpochMilli();
         long t1 = solar1.getTimeInMillis();
         long t2 = solar2.getTimeInMillis();
         switch (field) {
@@ -533,49 +529,26 @@ public class LunarCalendar implements Serializable {
         return year;
     }
 
-    public void setYear(int year) {
-        this.year = year;
-    }
-
     public int getMonth() {
         return month;
     }
 
-    public void setMonth(int month) {
-        this.month = month;
-    }
-
-    public int getDate() {
+    public int getDayOfMonth() {
         return day;
-    }
-
-    public void setDate(int date) {
-        this.day = date;
     }
 
     public int getLeapMonth() {
         return leapMonth;
     }
 
-    public void setLeapMonth(int leapMonth) {
-        this.leapMonth = leapMonth;
-    }
-
-    public GregorianCalendar getSolar() {
+    public LocalDate getSolar() {
         return solar;
-    }
-
-    public void setSolar(GregorianCalendar solar) {
-        this.solar = solar;
     }
 
     public boolean isLeapMonth() {
         return isLeapMonth;
     }
 
-    public void setLeapMonth(boolean isLeapMonth) {
-        this.isLeapMonth = isLeapMonth;
-    }
 
     /**
      * 一个简单的二分查找，返回查找到的元素坐标，用于查找农历二维数组信息
@@ -584,7 +557,7 @@ public class LunarCalendar implements Serializable {
      * @param n
      * @return int
      */
-    public static int binSearch(int[] array, int n) {
+    private static int binSearch(int[] array, int n) {
         if (null == array || array.length == 0) {
             return -1;
         }
