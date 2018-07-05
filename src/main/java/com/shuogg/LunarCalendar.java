@@ -4,9 +4,6 @@ import com.shuogg.exception.LunarException;
 
 import java.io.Serializable;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.ZoneOffset;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 
@@ -246,7 +243,7 @@ public class LunarCalendar implements Serializable {
     /**
      * 12生肖
      */
-    private static final char[] LUNAR_ANIMAIL_NAME = {'鼠', '牛', '虎', '兔', '龙', '蛇', '马', '羊', '猴', '鸡', '狗', '猪'};
+    private static final char[] LUNAR_ANIMAL_NAME = {'鼠', '牛', '虎', '兔', '龙', '蛇', '马', '羊', '猴', '鸡', '狗', '猪'};
 
     /**
      * 农历年份名
@@ -638,7 +635,7 @@ public class LunarCalendar implements Serializable {
      * @return char
      */
     public static char getAnimalYearName(int y) {
-        return LUNAR_ANIMAIL_NAME[(y - 4) % 12];
+        return LUNAR_ANIMAL_NAME[(y - 4) % 12];
     }
 
     /**
@@ -649,6 +646,5 @@ public class LunarCalendar implements Serializable {
     public String getFullLunarName() {
         return this.toString() + " " + getTraditionalYearName(this.year) + " " + getAnimalYearName(this.year);
     }
-
 
 }
