@@ -7,12 +7,15 @@ import java.time.LocalDate;
  */
 public class Test {
     public static void main(String[] args) {
-        LunarCalendar c1 = new LunarCalendar(2018, 7,5, false);
+        LunarCalendar c1 = new LunarCalendar(2018, 7, 5, false);
         System.out.println(c1);
         System.out.println(c1.getSolar());
 
-        LunarCalendar c2 = new LunarCalendar(2018, 1,1,true);
+        LunarCalendar c2 = new LunarCalendar(2018, 1, 1, true);
         System.out.println(c2);
         System.out.println(c2.getSolar());
+
+        LocalDate d0 = LunarUtil.lunar2Solar(2018, 7, 5);
+        LunarCalendar c0 = LunarUtil.solar2Lunar(2018, 5, 22);
     }
 }
